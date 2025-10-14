@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # LTX-Video Marketing Powerhouse
 
 A completely self-contained Google Cloud Platform solution for high-volume marketing video generation using LTX-Video. **Zero external dependencies** - all models are pre-downloaded and stored in GCP.
@@ -167,3 +168,6 @@ git push origin main
 ## 📄 License
 
 MIT License - see LICENSE file for details.
+=======
+# LTX-zenyai-video-creation
+>>>>>>> cefbc4f582924d6ee98f4fb5ad7b1da0fbc09f55
