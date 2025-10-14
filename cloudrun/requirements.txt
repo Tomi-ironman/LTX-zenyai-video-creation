@@ -1,0 +1,29 @@
+# Core ML dependencies
+torch>=2.1.2
+torchvision
+diffusers>=0.35.1
+transformers>=4.51.3
+accelerate
+safetensors
+timm
+
+# Image/Video processing
+Pillow
+numpy
+einops
+imageio-ffmpeg
+av
+
+# Utilities
+tqdm
+pyyaml
+
+# Web framework
+flask
+gunicorn
+
+# Google Cloud
+google-cloud-storage
+google-auth
+
+# Note: No huggingface-hub dependency for offline operation
