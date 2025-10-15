@@ -6,9 +6,7 @@ gunicorn
 google-cloud-storage
 google-auth
 
-# Core ML dependencies for LTX-Video
-torch>=2.1.2
-torchvision
+# Core ML dependencies for LTX-Video (torch already in base image)
 diffusers>=0.35.1
 transformers>=4.44.0
 accelerate>=0.34.0

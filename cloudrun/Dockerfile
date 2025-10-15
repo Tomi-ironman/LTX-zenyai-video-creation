@@ -1,5 +1,6 @@
 # Offline LTX-Video Marketing Powerhouse
-FROM python:3.10-slim
+# Use PyTorch base image to avoid long torch installation
+FROM pytorch/pytorch:2.1.2-cuda11.8-cudnn8-runtime
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
