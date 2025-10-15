@@ -5,7 +5,6 @@ import logging
 from datetime import datetime
 from flask import Flask, request, jsonify
 from google.cloud import storage
-import subprocess
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,10 +25,8 @@ class RealLTXVideoService:
         try:
             logger.info("🔥 Setting up REAL LTX-Video with actual codebase...")
             
-            # Install required packages
-            self.install_packages()
-            
-            # Download model and configs
+            # Packages are now installed via requirements.txt during build
+            # Just download the model
             self.download_model_files()
             
             self.model_loaded = True
@@ -39,34 +36,6 @@ class RealLTXVideoService:
             logger.error(f"❌ Setup failed: {e}")
             self.model_loaded = False
     
-    def install_packages(self):
-        """Install packages needed for REAL LTX-Video"""
-        try:
-            logger.info("📦 Installing LTX-Video packages...")
-            
-            packages = [
-                "torch>=2.1.2",
-                "torchvision", 
-                "transformers>=4.44.0",
-                "diffusers>=0.35.1",
-                "accelerate>=0.34.0",
-                "safetensors>=0.4.4",
-                "imageio-ffmpeg",
-                "av",
-                "einops",
-                "pillow",
-                "numpy",
-                "pyyaml"
-            ]
-            
-            for package in packages:
-                cmd = ["pip", "install", package]
-                subprocess.run(cmd, capture_output=True, timeout=120)
-                
-            logger.info("✅ Packages installed")
-                
-        except Exception as e:
-            logger.warning(f"⚠️  Package installation: {e}")
     
     def download_model_files(self):
         """Download model and config files"""
