@@ -96,45 +96,39 @@ class SimpleLTXService:
             return {"success": False, "error": str(e)}
     
     def try_real_inference(self, prompt, output_path, model_path, width, height, frames):
-        """Try real LTX inference"""
+        """Try real LTX inference - EXACTLY like Hugging Face docs"""
         try:
-            from diffusers import LTXPipeline
+            from diffusers import LTXConditionPipeline
+            from diffusers.utils import export_to_video
             import torch
             
-            logger.info("🧠 Loading LTX pipeline...")
+            logger.info("🧠 Loading LTX pipeline from Hugging Face...")
             
-            # Load pipeline
-            pipeline = LTXPipeline.from_single_file(
-                model_path,
+            # Load pipeline EXACTLY like the docs
+            pipe = LTXConditionPipeline.from_pretrained(
+                "Lightricks/LTX-Video", 
                 torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
             )
             
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            pipeline = pipeline.to(device)
+            pipe.to(device)
             
             logger.info(f"🎯 Running inference on {device}...")
             
-            # Generate
-            result = pipeline(
+            # Generate EXACTLY like the docs
+            video = pipe(
                 prompt=prompt,
                 height=height,
                 width=width,
                 num_frames=frames,
-                num_inference_steps=20,
-                guidance_scale=3.0
-            )
+                num_inference_steps=30,
+                generator=torch.Generator().manual_seed(42)
+            ).frames[0]
             
-            # Save frames as video
-            frames = result.frames[0]
+            # Export video EXACTLY like the docs
+            export_to_video(video, output_path, fps=24)
             
-            import imageio
-            with imageio.get_writer(output_path, fps=24) as writer:
-                for frame in frames:
-                    if hasattr(frame, 'convert'):
-                        frame = frame.convert('RGB')
-                    writer.append_data(frame)
-            
-            logger.info("✅ Real inference complete")
+            logger.info("✅ Real LTX inference complete")
             return True
             
         except Exception as e:
