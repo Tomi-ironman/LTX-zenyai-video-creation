@@ -104,9 +104,9 @@ class SimpleLTXService:
             
             logger.info("🧠 Loading LTX pipeline from Hugging Face...")
             
-            # Load pipeline EXACTLY like the docs
-            pipe = LTXConditionPipeline.from_pretrained(
-                "Lightricks/LTX-Video", 
+            # Load pipeline from our GCP bucket model (OFFLINE)
+            pipe = LTXConditionPipeline.from_single_file(
+                model_path,  # Use our downloaded 5.32 GiB model
                 torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32
             )
             
