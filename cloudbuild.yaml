@@ -34,7 +34,7 @@ steps:
       - '--timeout'
       - '3600'
       - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,MODEL_BUCKET=tomi-ltx-models-1760477322,OUTPUT_BUCKET=tomi-ltx-videos'
+      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,MODEL_BUCKET=tomi-ltx-models-1760477322,OUTPUT_BUCKET=tomi-ltx-videos-output-1760521573'
       - '--service-account'
       - 'ltx-video-service@$PROJECT_ID.iam.gserviceaccount.com'
 
