@@ -40,18 +40,16 @@ class HunyuanVideoService:
                 subprocess.run(["pip", "install", "-q", pkg], check=False)
             logger.info("✅ Packages installed")
             
-            # Download model files from bucket
-            logger.info("📥 Downloading HunyuanVideo model...")
-            self.download_model_files()
-            
-            # Load pipeline
+            # Load pipeline directly from HuggingFace
             from diffusers import HunyuanVideoPipeline
             
-            logger.info("🧠 Loading HunyuanVideo pipeline...")
+            logger.info("🧠 Loading HunyuanVideo from HuggingFace...")
+            logger.info("   This may take 5-10 minutes on first run...")
             self.pipeline = HunyuanVideoPipeline.from_pretrained(
-                "/tmp/hunyuan-video",
+                "tencent/HunyuanVideo",
                 torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-                variant="fp16" if torch.cuda.is_available() else None
+                variant="fp16" if torch.cuda.is_available() else None,
+                cache_dir="/tmp/hunyuan_cache"
             )
             
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -69,35 +67,6 @@ class HunyuanVideoService:
             import traceback
             traceback.print_exc()
             self.model_loaded = False
-    
-    def download_model_files(self):
-        """Download model files from GCP bucket"""
-        try:
-            bucket = self.client.bucket(MODEL_BUCKET)
-            os.makedirs("/tmp/hunyuan-video", exist_ok=True)
-            
-            # List all files in the hunyuan-video folder
-            blobs = list(bucket.list_blobs(prefix="models/hunyuan-video/"))
-            
-            for blob in blobs:
-                if blob.name.endswith('/'):
-                    continue
-                
-                # Extract relative path
-                rel_path = blob.name.replace("models/hunyuan-video/", "")
-                local_path = f"/tmp/hunyuan-video/{rel_path}"
-                
-                # Create directory if needed
-                os.makedirs(os.path.dirname(local_path), exist_ok=True)
-                
-                logger.info(f"   Downloading: {rel_path}")
-                blob.download_to_filename(local_path)
-            
-            logger.info("✅ All model files downloaded")
-            
-        except Exception as e:
-            logger.error(f"❌ Download failed: {e}")
-            raise
     
     def generate_video(self, prompt, width=1280, height=720, frames=129):
         """Generate video using HunyuanVideo"""
