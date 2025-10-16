@@ -35,10 +35,12 @@ class HunyuanVideoService:
                 packages = [
                     "torch==2.4.0",
                     "diffusers==0.32.1",
-                    "transformers==4.44.0",
+                    "transformers==4.46.3",  # Updated for HunyuanVideo compatibility
                     "accelerate==0.34.0",
                     "sentencepiece",
-                    "imageio-ffmpeg"
+                    "imageio-ffmpeg",
+                    "protobuf",
+                    "tokenizers>=0.20.0"  # Fix tokenizer loading issue
                 ]
                 for pkg in packages:
                     subprocess.run(["pip", "install", "-q", pkg], check=False)
@@ -57,7 +59,9 @@ class HunyuanVideoService:
             self.pipeline = HunyuanVideoPipeline.from_pretrained(
                 model_path,
                 torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-                local_files_only=True  # CRITICAL: No external calls!
+                local_files_only=True,  # CRITICAL: No external calls!
+                trust_remote_code=True,  # Required for custom models
+                variant="fp16" if torch.cuda.is_available() else None
             )
             
             device = "cuda" if torch.cuda.is_available() else "cpu"
