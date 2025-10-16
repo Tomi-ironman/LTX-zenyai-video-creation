@@ -18,35 +18,41 @@ class HunyuanVideoService:
         self.client = storage.Client()
         self.model_loaded = False
         self.pipeline = None
-        self.setup()
+        self.packages_installed = False
+        logger.info("✅ Service initialized - model will load on first request (lazy loading)")
     
-    def setup(self):
-        """Setup HunyuanVideo pipeline"""
+    def ensure_model_loaded(self):
+        """Lazy load model on first request - keeps startup fast!"""
+        if self.model_loaded:
+            return
+        
         try:
-            logger.info("🚀 Setting up HunyuanVideo...")
+            logger.info("🚀 First request - loading HunyuanVideo now...")
             
-            # Install dependencies at runtime
-            logger.info("📦 Installing packages...")
-            packages = [
-                "torch==2.4.0",
-                "diffusers==0.32.1",
-                "transformers==4.44.0",
-                "accelerate==0.34.0",
-                "sentencepiece",
-                "imageio-ffmpeg"
-            ]
-            for pkg in packages:
-                subprocess.run(["pip", "install", "-q", pkg], check=False)
-            logger.info("✅ Packages installed")
+            # Install dependencies once
+            if not self.packages_installed:
+                logger.info("📦 Installing packages...")
+                packages = [
+                    "torch==2.4.0",
+                    "diffusers==0.32.1",
+                    "transformers==4.44.0",
+                    "accelerate==0.34.0",
+                    "sentencepiece",
+                    "imageio-ffmpeg"
+                ]
+                for pkg in packages:
+                    subprocess.run(["pip", "install", "-q", pkg], check=False)
+                logger.info("✅ Packages installed")
+                self.packages_installed = True
             
             # Import torch and diffusers after installation
             import torch
             from diffusers import HunyuanVideoPipeline
             
-            # Load model from GCSFUSE mounted bucket (INSTANT ACCESS!)
+            # Load model from GCSFUSE mounted bucket
             model_path = os.environ.get("MODEL_MOUNT_PATH", "/mnt/models") + "/models/hunyuan-video"
             logger.info(f"🧠 Loading HunyuanVideo from mounted bucket: {model_path}")
-            logger.info("   GCSFUSE = NO DOWNLOAD = INSTANT STARTUP!")
+            logger.info("   This takes 2-3 minutes for 39GB model...")
             
             self.pipeline = HunyuanVideoPipeline.from_pretrained(
                 model_path,
@@ -65,16 +71,17 @@ class HunyuanVideoService:
             logger.info(f"✅ HunyuanVideo ready on {device}!")
             
         except Exception as e:
-            logger.error(f"❌ Setup failed: {e}")
+            logger.error(f"❌ Model loading failed: {e}")
             import traceback
             traceback.print_exc()
             self.model_loaded = False
+            raise
     
     def generate_video(self, prompt, width=1280, height=720, frames=129):
         """Generate video using HunyuanVideo"""
         try:
-            if not self.model_loaded:
-                return {"success": False, "error": "Model not loaded"}
+            # Lazy load model on first request
+            self.ensure_model_loaded()
             
             timestamp = int(datetime.now().timestamp())
             output_filename = f"hunyuan_video_{timestamp}.mp4"
