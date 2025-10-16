@@ -39,18 +39,17 @@ class HunyuanVideoService:
                 subprocess.run(["pip", "install", "-q", pkg], check=False)
             logger.info("✅ Packages installed")
             
-            # Download model from GCP bucket (ZERO external dependencies!)
-            logger.info("📥 Downloading HunyuanVideo from GCP bucket...")
-            logger.info("   OFFLINE MODEL - NO HUGGINGFACE DEPENDENCY")
-            self.download_model_from_bucket()
-            
             # Import torch and diffusers after installation
             import torch
             from diffusers import HunyuanVideoPipeline
             
-            logger.info("🧠 Loading HunyuanVideo from local cache...")
+            # Load model from GCSFUSE mounted bucket (INSTANT ACCESS!)
+            model_path = os.environ.get("MODEL_MOUNT_PATH", "/mnt/models") + "/models/hunyuan-video"
+            logger.info(f"🧠 Loading HunyuanVideo from mounted bucket: {model_path}")
+            logger.info("   GCSFUSE = NO DOWNLOAD = INSTANT STARTUP!")
+            
             self.pipeline = HunyuanVideoPipeline.from_pretrained(
-                "/tmp/hunyuan-video",
+                model_path,
                 torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
                 local_files_only=True  # CRITICAL: No external calls!
             )
@@ -70,37 +69,6 @@ class HunyuanVideoService:
             import traceback
             traceback.print_exc()
             self.model_loaded = False
-    
-    def download_model_from_bucket(self):
-        """Download HunyuanVideo from GCP bucket - ZERO external dependencies"""
-        try:
-            bucket = self.client.bucket(MODEL_BUCKET)
-            os.makedirs("/tmp/hunyuan-video", exist_ok=True)
-            
-            logger.info("   Downloading model files from bucket...")
-            blobs = list(bucket.list_blobs(prefix="models/hunyuan-video/"))
-            
-            total_size = 0
-            for blob in blobs:
-                if blob.name.endswith('/'):
-                    continue
-                
-                rel_path = blob.name.replace("models/hunyuan-video/", "")
-                local_path = f"/tmp/hunyuan-video/{rel_path}"
-                
-                os.makedirs(os.path.dirname(local_path), exist_ok=True)
-                
-                size_mb = blob.size / (1024 * 1024)
-                logger.info(f"   Downloading: {rel_path} ({size_mb:.1f} MB)")
-                blob.download_to_filename(local_path)
-                
-                total_size += size_mb
-            
-            logger.info(f"✅ Downloaded {total_size/1024:.2f} GB from bucket")
-            
-        except Exception as e:
-            logger.error(f"❌ Bucket download failed: {e}")
-            raise
     
     def generate_video(self, prompt, width=1280, height=720, frames=129):
         """Generate video using HunyuanVideo"""
