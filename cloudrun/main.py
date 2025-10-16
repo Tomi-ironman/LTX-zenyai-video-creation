@@ -70,9 +70,12 @@ class HunyuanVideoService:
                 model_path,
                 subfolder="transformer",
                 quantization_config=quantization_config,
-                local_files_only=True,
-                device_map="auto"
+                local_files_only=True
             )
+            
+            # Move to GPU if available
+            if torch.cuda.is_available():
+                transformer = transformer.cuda()
             
             # Load pipeline with quantized transformer
             self.pipeline = HunyuanVideoPipeline.from_pretrained(
