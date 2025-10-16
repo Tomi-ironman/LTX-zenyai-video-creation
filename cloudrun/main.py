@@ -4,7 +4,6 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 from google.cloud import storage
 import subprocess
-import torch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

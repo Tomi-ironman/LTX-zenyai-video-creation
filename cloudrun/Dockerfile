@@ -4,8 +4,6 @@ FROM python:3.10-slim
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
-ENV HF_HUB_OFFLINE=1
-ENV TRANSFORMERS_OFFLINE=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
