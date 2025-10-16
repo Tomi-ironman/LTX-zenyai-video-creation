@@ -39,7 +39,8 @@ class HunyuanVideoService:
                 subprocess.run(["pip", "install", "-q", pkg], check=False)
             logger.info("✅ Packages installed")
             
-            # Load pipeline directly from HuggingFace
+            # Import torch and diffusers after installation
+            import torch
             from diffusers import HunyuanVideoPipeline
             
             logger.info("🧠 Loading HunyuanVideo from HuggingFace...")
@@ -81,6 +82,7 @@ class HunyuanVideoService:
             logger.info(f"   Size: {width}x{height}, Frames: {frames}")
             
             # Generate video
+            import torch
             result = self.pipeline(
                 prompt=prompt,
                 height=height,
