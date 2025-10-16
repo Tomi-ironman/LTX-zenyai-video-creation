@@ -37,6 +37,7 @@ class HunyuanVideoService:
                     "diffusers==0.32.1",
                     "transformers==4.46.3",
                     "accelerate==0.34.0",
+                    "sentencepiece",
                     "imageio-ffmpeg"
                 ]
                 for pkg in packages:
