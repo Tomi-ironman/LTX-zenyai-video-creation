@@ -20,15 +20,31 @@ class MinimalLTXService:
         self.setup()
     
     def setup(self):
-        """Minimal setup - download model and load pipeline"""
+        """Minimal setup - install packages at runtime then load"""
         try:
-            logger.info("🔥 MINIMAL LTX setup - no BS...")
+            logger.info("🔥 MINIMAL LTX setup...")
+            
+            # Install packages at runtime
+            logger.info("📦 Installing packages...")
+            import subprocess
+            packages = [
+                "torch==2.1.2",
+                "diffusers==0.30.0", 
+                "transformers==4.44.0",
+                "safetensors==0.4.4",
+                "Pillow",
+                "imageio-ffmpeg"
+            ]
+            for pkg in packages:
+                subprocess.run(["pip", "install", "-q", pkg], check=False)
+            logger.info("✅ Packages installed")
             
             # Download model
             model_path = "/tmp/ltx-video-model.safetensors"
             if not os.path.exists(model_path):
                 bucket = self.client.bucket(MODEL_BUCKET)
                 blob = bucket.blob("models/ltx-video-complete/ltx-video-2b-v0.9.1.safetensors")
+                logger.info("📥 Downloading 5.32GB model...")
                 blob.download_to_filename(model_path)
                 logger.info("✅ Model downloaded")
             

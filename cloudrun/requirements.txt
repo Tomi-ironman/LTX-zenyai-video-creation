@@ -1,20 +1,5 @@
-# Web framework
+# Minimal build-time dependencies only
 flask
-
-# Google Cloud
 google-cloud-storage
 
-# Core ML - specific working versions
-torch==2.1.2
-diffusers==0.30.0
-transformers==4.44.0
-accelerate==0.34.0
-safetensors==0.4.4
-
-# Image/Video processing
-Pillow
-numpy
-imageio-ffmpeg
-
-# Utilities
-pyyaml
+# Everything else installed at runtime
