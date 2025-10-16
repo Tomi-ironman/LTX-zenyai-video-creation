@@ -27,21 +27,17 @@ class HunyuanVideoService:
             return
         
         try:
-            logger.info("🚀 First request - loading HunyuanVideo now...")
+            logger.info("🚀 First request - loading CogVideoX-2B now...")
             
             # Install dependencies once
             if not self.packages_installed:
-                logger.info("📦 Installing packages (including INT8 quantization)...")
+                logger.info("📦 Installing packages for CogVideoX-2B...")
                 packages = [
                     "torch==2.4.0",
                     "diffusers==0.32.1",
-                    "transformers==4.46.3",  # Updated for HunyuanVideo compatibility
+                    "transformers==4.46.3",
                     "accelerate==0.34.0",
-                    "bitsandbytes",  # INT8 quantization - reduces model size by 50%
-                    "sentencepiece",
-                    "imageio-ffmpeg",
-                    "protobuf",
-                    "tokenizers>=0.20.0"  # Fix tokenizer loading issue
+                    "imageio-ffmpeg"
                 ]
                 for pkg in packages:
                     subprocess.run(["pip", "install", "-q", pkg], check=False)
@@ -50,40 +46,19 @@ class HunyuanVideoService:
             
             # Import torch and diffusers after installation
             import torch
-            from diffusers import HunyuanVideoPipeline, HunyuanVideoTransformer3DModel
-            from transformers import BitsAndBytesConfig
+            from diffusers import CogVideoXPipeline
             
             # Load model from GCSFUSE mounted bucket
-            model_path = os.environ.get("MODEL_MOUNT_PATH", "/mnt/models") + "/models/hunyuan-video"
-            logger.info(f"🧠 Loading HunyuanVideo with INT8 quantization from: {model_path}")
-            logger.info("   INT8 quantization = 50% smaller, 2x faster loading!")
-            logger.info("   This takes 3-5 minutes (instead of 7-10 minutes)...")
+            model_path = os.environ.get("MODEL_MOUNT_PATH", "/mnt/models") + "/models/cogvideox-2b"
+            logger.info(f"🧠 Loading CogVideoX-2B from mounted bucket: {model_path}")
+            logger.info("   Model size: 10GB (4x smaller than HunyuanVideo!)")
+            logger.info("   Expected load time: 2-3 minutes...")
             
-            # Configure INT8 quantization
-            quantization_config = BitsAndBytesConfig(
-                load_in_8bit=True,
-                llm_int8_threshold=6.0
-            )
-            
-            # Load transformer with INT8 quantization
-            transformer = HunyuanVideoTransformer3DModel.from_pretrained(
+            # Load CogVideoX pipeline (no quantization needed - already compact!)
+            self.pipeline = CogVideoXPipeline.from_pretrained(
                 model_path,
-                subfolder="transformer",
-                quantization_config=quantization_config,
-                local_files_only=True
-            )
-            
-            # Move to GPU if available
-            if torch.cuda.is_available():
-                transformer = transformer.cuda()
-            
-            # Load pipeline with quantized transformer
-            self.pipeline = HunyuanVideoPipeline.from_pretrained(
-                model_path,
-                transformer=transformer,
                 torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-                local_files_only=True,  # CRITICAL: No external calls!
-                trust_remote_code=True  # Required for custom models
+                local_files_only=True  # CRITICAL: No external calls!
             )
             
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -92,9 +67,11 @@ class HunyuanVideoService:
             # Enable memory optimizations
             if torch.cuda.is_available():
                 self.pipeline.enable_model_cpu_offload()
+                self.pipeline.vae.enable_slicing()
+                self.pipeline.vae.enable_tiling()
             
             self.model_loaded = True
-            logger.info(f"✅ HunyuanVideo ready on {device}!")
+            logger.info(f"✅ CogVideoX-2B ready on {device}!")
             
         except Exception as e:
             logger.error(f"❌ Model loading failed: {e}")
@@ -103,34 +80,33 @@ class HunyuanVideoService:
             self.model_loaded = False
             raise
     
-    def generate_video(self, prompt, width=1280, height=720, frames=129):
-        """Generate video using HunyuanVideo"""
+    def generate_video(self, prompt, width=720, height=480, frames=49):
+        """Generate video using CogVideoX-2B"""
         try:
             # Lazy load model on first request
             self.ensure_model_loaded()
             
             timestamp = int(datetime.now().timestamp())
-            output_filename = f"hunyuan_video_{timestamp}.mp4"
+            output_filename = f"cogvideox_video_{timestamp}.mp4"
             output_path = f"/tmp/{output_filename}"
             
-            logger.info(f"🎬 Generating HunyuanVideo: {prompt}")
-            logger.info(f"   Size: {width}x{height}, Frames: {frames}")
+            logger.info(f"🎬 Generating CogVideoX-2B video: {prompt}")
+            logger.info(f"   Size: {width}x{height}, Frames: {frames} (6 seconds @ 8fps)")
             
-            # Generate video
+            # Generate video with CogVideoX
             import torch
             result = self.pipeline(
                 prompt=prompt,
-                height=height,
-                width=width,
                 num_frames=frames,
                 num_inference_steps=50,
+                guidance_scale=6.0,
                 generator=torch.Generator(device=self.pipeline.device).manual_seed(42),
             )
             
             # Export video
             from diffusers.utils import export_to_video
             frames = result.frames[0]
-            export_to_video(frames, output_path, fps=24)
+            export_to_video(frames, output_path, fps=8)
             
             # Upload to bucket
             if os.path.exists(output_path):
@@ -152,9 +128,10 @@ class HunyuanVideoService:
                     "video_path": f"gs://{OUTPUT_BUCKET}/{bucket_path}",
                     "prompt": prompt,
                     "file_size_mb": round(file_size, 2),
-                    "model": "HunyuanVideo",
+                    "model": "CogVideoX-2B",
                     "resolution": f"{width}x{height}",
-                    "frames": frames
+                    "frames": frames,
+                    "duration_seconds": frames / 8
                 }
             
             return {"success": False, "error": "No video generated"}
