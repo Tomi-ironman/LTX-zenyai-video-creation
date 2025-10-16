@@ -60,8 +60,7 @@ class HunyuanVideoService:
                 model_path,
                 torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
                 local_files_only=True,  # CRITICAL: No external calls!
-                trust_remote_code=True,  # Required for custom models
-                variant="fp16" if torch.cuda.is_available() else None
+                trust_remote_code=True  # Required for custom models
             )
             
             device = "cuda" if torch.cuda.is_available() else "cpu"
