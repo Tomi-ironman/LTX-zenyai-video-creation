@@ -1,11 +1,11 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/ltx-video-api:$COMMIT_SHA', '-f', 'cloudrun/Dockerfile', './cloudrun']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/ltx-video-api:latest', '-f', 'cloudrun/Dockerfile', './cloudrun']
   
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/ltx-video-api:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/ltx-video-api:latest']
   
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,7 +15,7 @@ steps:
       - 'deploy'
       - 'ltx-video-api'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/ltx-video-api:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/ltx-video-api:latest'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -39,4 +39,4 @@ steps:
       - 'ltx-video-service@$PROJECT_ID.iam.gserviceaccount.com'
 
 images:
-  - 'gcr.io/$PROJECT_ID/ltx-video-api:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/ltx-video-api:latest'
