@@ -91,15 +91,16 @@ class HunyuanVideoService:
             timestamp = int(datetime.now().timestamp())
             output_filename = f"cogvideox_video_{timestamp}.mp4"
             output_path = f"/tmp/{output_filename}"
+            num_frames = frames  # Save before reassigning
             
             logger.info(f"🎬 Generating CogVideoX-2B video: {prompt}")
-            logger.info(f"   Size: {width}x{height}, Frames: {frames} (6 seconds @ 8fps)")
+            logger.info(f"   Size: {width}x{height}, Frames: {num_frames} (6 seconds @ 8fps)")
             
             # Generate video with CogVideoX
             import torch
             result = self.pipeline(
                 prompt=prompt,
-                num_frames=frames,
+                num_frames=num_frames,
                 num_inference_steps=50,
                 guidance_scale=6.0,
                 generator=torch.Generator(device=self.pipeline.device).manual_seed(42),
@@ -107,8 +108,8 @@ class HunyuanVideoService:
             
             # Export video
             from diffusers.utils import export_to_video
-            frames = result.frames[0]
-            export_to_video(frames, output_path, fps=8)
+            video_frames = result.frames[0]
+            export_to_video(video_frames, output_path, fps=8)
             
             # Upload to bucket
             if os.path.exists(output_path):
@@ -132,8 +133,8 @@ class HunyuanVideoService:
                     "file_size_mb": round(file_size, 2),
                     "model": "CogVideoX-2B",
                     "resolution": f"{width}x{height}",
-                    "frames": frames,
-                    "duration_seconds": frames / 8
+                    "frames": num_frames,
+                    "duration_seconds": round(num_frames / 8, 1)
                 }
             
             return {"success": False, "error": "No video generated"}
