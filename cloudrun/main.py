@@ -110,16 +110,11 @@ class VideoService:
                 response = requests.get(image_url, timeout=30)
                 image = Image.open(io.BytesIO(response.content))
             else:
-                # Create test image for demo
-                logger.info("🎨 Creating test starting image...")
-                image = Image.new('RGB', (1024, 576), color=(100, 150, 200))
-                # Add some pattern for motion
-                from PIL import ImageDraw
-                draw = ImageDraw.Draw(image)
-                for i in range(0, 1024, 50):
-                    draw.line([(i, 0), (i, 576)], fill=(120, 170, 220), width=2)
-                for i in range(0, 576, 50):
-                    draw.line([(0, i), (1024, i)], fill=(120, 170, 220), width=2)
+                # Use a real test image - SVD needs actual visual content!
+                logger.info("📥 Using Hugging Face rocket demo image for test...")
+                test_image_url = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/diffusers/svd/rocket.png"
+                response = requests.get(test_image_url, timeout=30)
+                image = Image.open(io.BytesIO(response.content))
             
             # Resize to SVD requirements (1024x576)
             image = image.resize((1024, 576))
