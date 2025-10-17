@@ -83,6 +83,12 @@ class HunyuanVideoService:
             raise
     
     def generate_video(self, prompt, width=720, height=480, frames=49):
+        """
+        CogVideoX-2B Requirements:
+        - Resolution must be divisible by 16
+        - Frames should be 49 (6 sec) or 81 (10 sec) 
+        - Prompt should be descriptive
+        """
         """Generate video using CogVideoX-2B"""
         try:
             # Lazy load model on first request
@@ -95,7 +101,7 @@ class HunyuanVideoService:
             
             logger.info(f"🎬 Generating CogVideoX-2B video: {prompt}")
             logger.info(f"   Size: {width}x{height}, Frames: {num_frames} (6 seconds @ 8fps)")
-            logger.info(f"   Using 100 inference steps for high quality...")
+            logger.info(f"   Using 50 inference steps with num_videos_per_prompt=1...")
             
             # Generate video with CogVideoX - PROPER SETTINGS
             import torch
@@ -103,10 +109,10 @@ class HunyuanVideoService:
             # Use proper generation parameters for CogVideoX-2B
             result = self.pipeline(
                 prompt=prompt,
+                num_videos_per_prompt=1,  # CRITICAL: Prevents green output
                 num_frames=num_frames,
-                num_inference_steps=100,  # Higher steps for better quality
-                guidance_scale=7.0,  # Higher guidance for better adherence to prompt
-                use_dynamic_cfg=True,  # Better quality
+                num_inference_steps=50,  # Back to 50 for faster testing
+                guidance_scale=6.0,
                 generator=torch.Generator(device=self.pipeline.device).manual_seed(42),
             )
             
