@@ -331,10 +331,19 @@ def image_to_video():
         from PIL import Image
         import io
         
+        logger.info(f"📥 Downloading image from: {image_url}")
         response = requests.get(image_url, timeout=30)
+        response.raise_for_status()
+        
+        logger.info(f"   Content-Type: {response.headers.get('content-type')}")
+        logger.info(f"   Size: {len(response.content)} bytes")
+        
         image = Image.open(io.BytesIO(response.content))
+        logger.info(f"   Image format: {image.format}, Size: {image.size}")
+        
         image = image.resize((1024, 576))
         image = image.convert('RGB')
+        logger.info(f"✅ Image loaded and resized to 1024x576")
         
         # Generate video
         video_service.ensure_svd_loaded()
