@@ -38,6 +38,7 @@ class HunyuanVideoService:
                     "transformers==4.46.3",
                     "accelerate==0.34.0",
                     "sentencepiece",
+                    "opencv-python",
                     "imageio-ffmpeg"
                 ]
                 for pkg in packages:
