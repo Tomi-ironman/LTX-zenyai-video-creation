@@ -1,0 +1,8 @@
+# Core dependencies
+flask
+google-cloud-storage
+pillow
+requests
+
+# AI/ML packages (installed at runtime for faster builds)
+# torch, diffusers, transformers, accelerate installed via pip in main.py
