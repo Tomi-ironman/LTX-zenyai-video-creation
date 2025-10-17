@@ -1,5 +1,8 @@
-# Minimal build-time dependencies only
+# Core dependencies
 flask
 google-cloud-storage
+pillow
+requests
 
-# Everything else installed at runtime
+# AI/ML packages (installed at runtime for faster builds)
+# torch, diffusers, transformers, accelerate installed via pip in main.py
