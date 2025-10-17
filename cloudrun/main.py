@@ -95,20 +95,26 @@ class HunyuanVideoService:
             
             logger.info(f"🎬 Generating CogVideoX-2B video: {prompt}")
             logger.info(f"   Size: {width}x{height}, Frames: {num_frames} (6 seconds @ 8fps)")
+            logger.info(f"   Using 100 inference steps for high quality...")
             
-            # Generate video with CogVideoX
+            # Generate video with CogVideoX - PROPER SETTINGS
             import torch
+            
+            # Use proper generation parameters for CogVideoX-2B
             result = self.pipeline(
                 prompt=prompt,
                 num_frames=num_frames,
-                num_inference_steps=50,
-                guidance_scale=6.0,
+                num_inference_steps=100,  # Higher steps for better quality
+                guidance_scale=7.0,  # Higher guidance for better adherence to prompt
+                use_dynamic_cfg=True,  # Better quality
                 generator=torch.Generator(device=self.pipeline.device).manual_seed(42),
             )
             
-            # Export video
+            # Export video with proper handling
             from diffusers.utils import export_to_video
             video_frames = result.frames[0]
+            
+            logger.info(f"   Exporting {len(video_frames)} frames to video...")
             export_to_video(video_frames, output_path, fps=8)
             
             # Upload to bucket
